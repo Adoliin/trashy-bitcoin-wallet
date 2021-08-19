@@ -1,0 +1,20 @@
+.wallet {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.adress {
+  margin-top: 2rem;
+  border-color: goldenrod;
+  border-style: solid;
+}
+.adress h2 {
+  color: goldenrod;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+
+table {
+}
