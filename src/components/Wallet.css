@@ -4,15 +4,30 @@
   align-items: center;
   flex-direction: column;
 }
-.adress {
+.address {
   margin-top: 2rem;
   border-color: goldenrod;
   border-style: solid;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
 .adress h2 {
   color: goldenrod;
-  text-align: center;
+  /*text-align: center;*/
   margin-bottom: 1rem;
+}
+
+.rem-adr {
+  align-self: flex-end;
+}
+
+.sats {
+  width: 100%;
+}
+.sats h4{
+  width: 100%;
+  color: rosybrown;
 }
 
 
