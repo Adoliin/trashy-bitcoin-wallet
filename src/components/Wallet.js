@@ -1,7 +1,12 @@
-import React from 'react'
+import React, {
+  useState,
+  useEffect,
+} from 'react'
 import './Wallet.css'
 import {
-  generateAddress
+  generateAddress,
+  getUtxosAndSats,
+  sendTransaction,
 } from '../api/api.js'
 import {
   getAddresses,
@@ -28,11 +33,22 @@ class Wallet extends React.Component {
 
   componentDidMount() {
     let addresses = getAddresses()
-    console.log(addresses)
+    //console.log(addresses)
     //this.state.addresses = getAddresses()
     this.setState(() => ({
       addresses: addresses,
     }))
+  }
+
+  deleteAddress(index) {
+    if (window.confirm('DELETE this address?')) {
+      let newAddresses = this.state.addresses
+      newAddresses.splice(index, 1);
+      this.setState(() => ({
+        addresses: newAddresses,
+      }))
+      setAddresses(newAddresses)
+    }
   }
 
   render() {
@@ -44,7 +60,14 @@ class Wallet extends React.Component {
         </button>
         {
           addresses.map((adr, i) => {
-            return <Address adr={adr} index={i} key={i}/>
+            return (
+            <Address
+              adr={adr}
+              index={i}
+              key={i}
+              onDeleteAddress={this.deleteAddress.bind(this, i)}
+            />
+            )
           })
         }
       </div>
@@ -52,9 +75,27 @@ class Wallet extends React.Component {
   }
 }
 
+
 function Address(props) {
+  const [sats, setSats]   = useState(0)
+  const [utxos, setUtxos] = useState([])
+
+  async function handleGetSats() {
+    const tmp = await getUtxosAndSats(props.adr)
+    setSats(tmp.sats)
+    setUtxos(tmp.utxos)
+  }
+
+  useEffect(() => {
+    handleGetSats()
+  }, [props.adr])
+
+  function handleDeleteAddress() {
+    props.onDeleteAddress()
+  }
+
   return (
-    <div className="adress">
+    <div className="address">
       <h2>Address {props.index}:</h2>
       <table>
         <tbody>
@@ -80,8 +121,68 @@ function Address(props) {
           </tr>
         </tbody>
       </table>
+      <div className="sats">
+        <button onClick={()=>handleGetSats()}>refresh</button>
+        <h4>Sats: {sats}</h4>
+      </div>
+      <SendAllTo 
+        utxos={utxos}
+        wif={props.adr.wif}
+        sats={sats}
+        segwitAddress={props.adr.segwitAddress}
+      />
+      <button
+        className="rem-adr"
+        onClick={handleDeleteAddress}
+      >X</button>
     </div>
+  )
+}
 
+function SendAllTo(props) {
+  const [toAddress, setToAddress] = useState('')
+  const [satsToSend, setSatsToSend] = useState('')
+
+  function handleAddressChange(e) {
+    setToAddress(e.target.value)
+    e.preventDefault()
+  }
+  function handleSatsChange(e) {
+    setSatsToSend(e.target.value)
+    e.preventDefault()
+  }
+
+  function handleSendSats() {
+    sendTransaction(
+      props.wif,
+      props.segwitAddress,
+      props.utxos,
+      props.sats,
+      satsToSend,
+      toAddress
+    )
+  }
+
+  return (
+    <div>
+      <div>
+          Send To:
+        <input 
+          type="text"
+          value={toAddress} 
+          onChange={(e)=>{handleAddressChange(e)}}
+        />
+      </div>
+      <div>
+        Amount:
+        <input 
+          type="number"
+          value={satsToSend} 
+          onChange={(e)=>{handleSatsChange(e)}}
+        />
+      </div>
+      <button onClick={()=>handleSendSats()}>SEND</button>
+    </div>
   )
 }
 
